@@ -91,7 +91,7 @@ class SimulatorNode(MPClabNode):
             self.occupied[idx] = True
 
         # Agents
-        self._gen_agents()
+        # self._gen_agents()
 
         # Spawning
         self.spawn_entering_time = list(np.random.exponential(self.spawn_interval_mean, self.spawn_entering))
