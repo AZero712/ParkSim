@@ -22,7 +22,7 @@ runs/
 .DS_Store
 
 # data files
-data/
+*.bak
 python/parksim/trajectory_predict/intent_transformer/checkpoints/*
 *.pickle
 *.npz
