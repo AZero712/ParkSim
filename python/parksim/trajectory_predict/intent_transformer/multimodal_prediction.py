@@ -72,7 +72,7 @@ def expand_distribution(intents: PredictionResponse, lanes: List, n=3):
             
 
 
-def predict_multimodal(ds, traj_model: BaseTransformerLightningModule, intent_model: SmallRegularizedCNN, traj_extractor: TransformerDataProcessor, intent_extractor: CNNDataProcessor, inst_token: str, inst_idx: int, n: int, mode='v2'):
+def predict_multimodal(ds: Dataset, traj_model: BaseTransformerLightningModule, intent_model: SmallRegularizedCNN, traj_extractor: TransformerDataProcessor, intent_extractor: CNNDataProcessor, inst_token: str, inst_idx: int, n: int, mode='v2', is_get_trajectory_future=True):
     """Given a trajectory prediction model, intent prediction model, and instance,
    predict the top-n most likely trajectories"""
 
@@ -106,7 +106,7 @@ def predict_multimodal(ds, traj_model: BaseTransformerLightningModule, intent_mo
     predicted_trajectories = []
     for probability, global_intent_pose in top_n:
         #TODO: do something with probability?
-        img, X, y_label, intent = get_data_for_instance(inst_token, inst_idx, instance['frame_token'], traj_extractor, ds, global_intent_pose)
+        img, X, y_label, intent = get_data_for_instance(inst_token, inst_idx, instance['frame_token'], traj_extractor, ds, global_intent_pose, is_get_trajectory_future=is_get_trajectory_future)
         
         with torch.no_grad():
             if mode=='v2':
@@ -153,7 +153,7 @@ def predict_multimodal(ds, traj_model: BaseTransformerLightningModule, intent_mo
     
     return predicted_trajectories, intent_img
 
-def get_data_for_instance(inst_token: str, inst_idx: int, frame_token: str, extractor: TransformerDataProcessor, ds: Dataset, global_intent_pose: np.array, stride: int=10, history: int=10, future: int=10, img_size: int=100) -> Tuple[np.array, np.array, np.array]:
+def get_data_for_instance(inst_token: str, inst_idx: int, frame_token: str, extractor: TransformerDataProcessor, ds: Dataset, global_intent_pose: np.array, stride: int=10, history: int=10, future: int=10, img_size: int=100, is_get_trajectory_future=True) -> Tuple[np.array, np.array, np.array]:
     """
     returns image, trajectory_history, and trajectory future for given instance
     """
@@ -197,11 +197,14 @@ def get_data_for_instance(inst_token: str, inst_idx: int, frame_token: str, extr
         image_history.append(image_tensor)
     
     trajectory_future = []
-    for i in range(inst_idx + stride, inst_idx + stride * future + 1, stride):
-        instance = instances_agent_is_in[i]
-        pos = np.array(instance['coords'])
-        translated_pos = np.dot(rot, pos-curr_pose[:2])
-        trajectory_future.append(Tensor([translated_pos[0], translated_pos[1], instance['heading'] - curr_pose[2]]))
-    
+    if is_get_trajectory_future:
+        for i in range(inst_idx + stride, inst_idx + stride * future + 1, stride):
+            instance = instances_agent_is_in[i]
+            pos = np.array(instance['coords'])
+            translated_pos = np.dot(rot, pos-curr_pose[:2])
+            trajectory_future.append(Tensor([translated_pos[0], translated_pos[1], instance['heading'] - curr_pose[2]]))
+    else:
+        # 0初始化
+        trajectory_future = [Tensor([0, 0, 0]) for _ in range(future)]
     # NOTE: we use [None] to add one dimension to the front
     return torch.stack(image_history)[None], torch.stack(trajectory_history)[None], torch.stack(trajectory_future)[None], torch.from_numpy(local_intent_pose)[None]

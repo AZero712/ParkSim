@@ -106,3 +106,34 @@ class AStarPlanner(object):
                     self.fringe.put((aStar_cost, next(self.counter), new_node))
 
         raise Exception('Path is not found')
+
+    def solve_with_heading(self, heading: float = 0):
+        """
+        solve the path
+        """
+        while not self.fringe.empty():
+            _, _, (v, path, cost) = self.fringe.get()
+            # print("ost:",aStar_cost_)
+            if v == self.v_goal:
+                print((path + [edge])[0].v1.coords, (path + [edge])[0].v2.coords)
+
+                # the returned path is a list of edges
+                # print("Solved")
+                return AStarGraph(path)
+            if v not in self.closed:
+                self.closed.add(v)
+
+                for child, edge in zip(*v.get_children()):
+                    if v == self.v_start:
+                        path_vector = child.coords - self.v_start.coords
+                        # print(child.coords)
+                        heading_cost = np.fabs(heading - np.arctan2(path_vector[1], path_vector[0]))
+                        if heading_cost > np.pi/2:
+                            continue    
+
+                    new_cost = cost + edge.c
+                    aStar_cost = new_cost + child.dist(self.v_goal)
+                    new_node = (child, path + [edge], new_cost)
+                    self.fringe.put((aStar_cost, next(self.counter), new_node))
+
+        raise Exception('Path is not found')

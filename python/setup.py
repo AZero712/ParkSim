@@ -23,8 +23,8 @@ setuptools.setup(
         "lark",
         "dearpygui",
         "seaborn>=0.11.2",
-        "ray[tune]",
-        "pytorch_lightning",
+        # "ray[tune]",
+        # "pytorch_lightning",
         "einops"
     ]
     # Dragon Lake Parking (DLP) Dataset should be built with its own source
