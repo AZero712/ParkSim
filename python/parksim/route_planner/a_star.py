@@ -128,7 +128,7 @@ class AStarPlanner(object):
                         path_vector = child.coords - self.v_start.coords
                         # print(child.coords)
                         heading_cost = np.fabs(heading - np.arctan2(path_vector[1], path_vector[0]))
-                        if heading_cost > np.pi/2:
+                        if heading_cost > np.pi/6:
                             continue    
 
                     new_cost = cost + edge.c
