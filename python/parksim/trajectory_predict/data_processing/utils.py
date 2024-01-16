@@ -43,7 +43,8 @@ class TransformerDataProcessor(object):
         for inst_token in frame['instances']:
             instance = self.ds.get('instance', inst_token)
             agent = self.ds.get('agent', instance['agent_token'])
-            if agent['type'] not in {'Pedestrian', 'Undefined'}:
+            # if agent['type'] not in {'Pedestrian', 'Undefined'}:
+            if agent['type'] in {'Car'}:
                 try:
                     if self.ds.get_inst_mode(inst_token) not in ('incoming', 'outgoing'):
                         continue
